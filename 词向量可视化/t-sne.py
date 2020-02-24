@@ -1,9 +1,15 @@
 import os
+import sys
 import time
+import urllib
 
+import cv2
+from matplotlib import pyplot as plt
 import gensim
 import numpy as np
 
+
+colors = None
 
 def cal_pairwise_dist(x):
     '''计算pairwise 距离, x是matrix
@@ -88,7 +94,7 @@ def pca(x, no_dims=50):
     return y
 
 
-def tsne(x, no_dims=2, initial_dims=50, perplexity=30.0, max_iter=500):
+def tsne(x, no_dims=2, initial_dims=50, perplexity=30.0, max_iter=1000):
     """Runs t-SNE on the dataset in the NxD array x
     to reduce its dimensionality to no_dims dimensions.
     The syntaxis of the function is Y = tsne.tsne(x, no_dims, perplexity),
@@ -148,56 +154,47 @@ def tsne(x, no_dims=2, initial_dims=50, perplexity=30.0, max_iter=500):
         y = y + iy
         y = y - np.tile(np.mean(y, 0), (n, 1))
         # Compute current value of cost function
+        if iter%5==0: sys.stdout.write(f"\r>>> {iter}/{max_iter}")
+        sys.stdout.flush()
         if (iter + 1) % 100 == 0:
             if iter > 100:
                 C = np.sum(P * np.log(P / Q))
             else:
                 C = np.sum(P / 4 * np.log(P / 4 / Q))
-            print("Iteration ", (iter + 1), ": error is ", C)
+            print("\nIteration ", (iter + 1), ": error is ", C)
         # Stop lying about P-values
         if iter == 100:
             P = P / 4
+        # plt.scatter(y[:, 0], y[:, 1], 20, labels)
+        scatter(y[:, 0], y[:, 1], labels)
+        # plt.show()
     print("finished training!")
     return y
 
 
-if __name__ == "__main__":
-    t1 = time.time()
-    if not os.path.exists("E:\\DATA\\tencent\\ChineseEmbedding.bin"):
-        # wv_from_text = gensim.models.KeyedVectors.load_word2vec_format('E:\\DATA\\tencent\\Tencent_AILab_ChineseEmbedding.txt', limit=10000, binary=False)
-        wv_from_text = gensim.models.KeyedVectors.load_word2vec_format(
-            'E:\\DATA\\tencent\\Tencent_AILab_ChineseEmbedding.txt', binary=False)
-        # 使用init_sims会比较省内存
-        print("文件载入耗费时间：", (time.time() - t1), "s")
-        wv_from_text.init_sims(replace=True)
-        # 重新保存加载变量为二进制形式
-        wv_from_text.save(r"E:\\DATA\\tencent\\ChineseEmbedding.bin")
-    else:
-        wv_from_text = gensim.models.KeyedVectors.load(r'E:\\DATA\\tencent\\ChineseEmbedding.bin', mmap='r')
-    wv_from_text = wv_from_text
-    vector_size = wv_from_text.vector_size
-    print("文件载入耗费时间：", (time.time() - t1) / 60, "minutes")
-    words = wv_from_text.index2word[0:300000]
-    embeddings = wv_from_text.vectors[0:300000, :]
-    embeddings = np.array(embeddings)
-    # Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset.
-    # X = np.loadtxt("mnist2500_X.txt")
-    # labels = np.loadtxt("mnist2500_labels.txt")
-    X = embeddings[0:300, :]
-    labels = words[0:3000]
-    colors = np.random.random(300)
-    Y = tsne(X, 2, 50, 20.0, 100)
-    from matplotlib import pyplot as plt
+def scatter(x, y, labels):
+    global colors
+    w, h = 300, 300
+    label_len = len(np.unique(labels))
+    if colors is None:
+        colors = np.reshape(np.random.random(3*label_len)*255, (label_len, 3)).astype(np.uint8).tolist()
+    image = np.zeros((h+200, w+200+30, 3), dtype=np.uint8)
+    score_x = w/max(x.max(),x.min())
+    score_y = h/max(y.max(),y.min())
+    for index, label in enumerate(labels):
+        cv2.circle(image, (int(x[index]*score_x+200), int(y[index]*score_y)+200), 3, tuple(colors[int(label)]), -1)
+    for i, label in enumerate(np.unique(labels)):
+        cv2.putText(image, str(int(label)), (w+210, h+i*16), cv2.FONT_HERSHEY_SIMPLEX, 0.4, tuple(colors[int(label)]), 2)
+    cv2.imshow("image", image)
+    cv2.waitKey(1)
 
-    for i in range(len(Y[:, 0])):
-        plt.scatter(Y[i, 0], Y[i, 1], 20, colors[i])
-        plt.annotate(
-            labels[i],
-            xy=(Y[i, 0], Y[i, 1]),
-            xytext=(5, 2),
-            textcoords="offset points",
-            ha="right",
-            va="bottom"
-        )
+
+if __name__ == "__main__":
+    # Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset.
+    X = np.loadtxt("mnist2500_X.txt")
+    labels = np.loadtxt("mnist2500_labels.txt")
+
+    Y = tsne(X, 2, 50, 20.0)
+
+    plt.scatter(Y[:, 0], Y[:, 1], 20, labels)
     plt.show()
-    plt.savefig("mytsne.png")
