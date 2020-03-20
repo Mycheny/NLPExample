@@ -9,7 +9,8 @@ from dao import Data, session
 
 
 def get_data():
-    data = session.query(Data).all()
+    from pyunit_newword.dao import Data, session
+    data = session.query(Data).filter()
     return data
 
 
