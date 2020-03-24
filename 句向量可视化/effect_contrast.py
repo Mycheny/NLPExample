@@ -50,8 +50,8 @@ class Dataset(object):
     dataset = {}
 
     def __init__(self):
-        # self.init_atec_nlp()
-        # self.init_ChineseSTS()
+        self.init_atec_nlp()
+        self.init_ChineseSTS()
         self.init_self_library()
 
     def init_atec_nlp(self, path=None):
@@ -64,7 +64,7 @@ class Dataset(object):
         for p in path:
             with open(p, "r", encoding="utf-8") as f:
                 lines.extend(f.readlines())
-        for i, line in enumerate(tqdm(lines[:8000], desc="加载蚂蚁金服数据：", mininterval=1)):
+        for i, line in enumerate(tqdm(lines[:], desc="加载蚂蚁金服数据：", mininterval=1)):
             _, seq1, seq2, score = line.strip("\n").split("\t")
             seq1 = seq1.encode('utf-8').decode('utf-8-sig')
             seq2 = seq2.encode('utf-8').decode('utf-8-sig')
@@ -83,35 +83,45 @@ class Dataset(object):
         datas = []
         labels = []
         with open(path, "r", encoding="utf-8") as f:
-            for i, line in enumerate(tqdm(f.readlines()[:5000], desc="加载ChineseSTS数据：", mininterval=1)):
+            for i, line in enumerate(tqdm(f.readlines()[:], desc="加载ChineseSTS数据：", mininterval=1)):
                 _, seq1, _, seq2, score = line.strip("\n").split("\t")
                 if not seq1 in sentences:
                     sentences.append(seq1)
                 if not seq2 in sentences:
                     sentences.append(seq2)
                 datas.append([sentences.index(seq1), sentences.index(seq2)])
-                labels.append(float(score)/5)
+                labels.append(float(score) / 5)
         datas_same = [data for data, label in zip(datas, labels) if label == 1]
         sentences = [jieba.lcut(sentence) for sentence in sentences]
         self.dataset["sts"] = {"datas": datas, "labels": labels, "sentences": sentences, "datas_same": datas_same}
 
     def init_self_library(self):
+        sentences = []
+        datas = []
+        labels = []
         path1 = "datas/self_library/贵阳市政务服务中心（知识点及问法).xlsx"
         path2 = "datas/self_library/省政府办公厅（知识点及问法）.xlsx"
-        datas1 = pd.read_excel(path1)
-        print()
+        datas1 = pd.read_excel(path1, sheet_name=1).head(n=100000)
+        res = datas1.groupby("定位标准问").动态测试样例.apply(list).to_dict()
+        sentences = list(set.union(set(datas1["定位标准问"]), set(datas1["动态测试样例"])))
+        datas = datas_same = [[sentences.index(key), sentences.index(value)] for key, values in res.items() for value in
+                              values]
+        labels = [1 for i in range(len(datas))]
+        sentences = [jieba.lcut(sentence) for sentence in sentences]
+        self.dataset["self_library"] = {"datas": datas, "labels": labels, "sentences": sentences,
+                                        "datas_same": datas_same}
 
-
-    def get_dataset(self, name="atec"):
+    def get_dataset(self, name="self_library"):
         return self.dataset[name]
 
 
 if __name__ == '__main__':
     dataset = Dataset()
-    data = dataset.get_dataset()
+    # data = dataset.get_dataset()
 
     generate = Generate()
     for k, datas in dataset.dataset.items():
+        print(k)
         sentences = datas["sentences"]
         datas_same = datas["datas_same"]
         inputs = datas["datas"]
@@ -122,8 +132,8 @@ if __name__ == '__main__':
         labels2 = []
         for [i, j], label in zip(inputs, labels):
             predict = model.sv.similarity(i, j)
-            predict = 1 if predict>0.5 else 0
-            label = 1 if label>0.5 else 0
+            predict = 1 if predict > 0.5 else 0
+            label = 1 if label > 0.5 else 0
             predicts.append(predict)
             labels2.append(label)
         cm = confusion_matrix(labels2, predicts)
@@ -142,6 +152,6 @@ if __name__ == '__main__':
         print(cm)
         print(f"准确率: {accuracy}")
         print(f"错误率: {error}")
-        print(f"特效度: {specificity}")
+        print(f"特效率: {specificity}")
         print(f"精确率: {precision}")
         print(f"召回率: {recall}")
