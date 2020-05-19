@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@172.16.204.14:12598">
     <serverData>
       <paths name="root@172.16.204.14:12598">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="NLPExample" local="$PROJECT_DIR$" web="/" />
           </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@192.168.160.69:22">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@222.85.230.14:12344">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/.idea" />
+            <excludedPath local="true" path="$PROJECT_DIR$/CoreNLP" />
+            <excludedPath local="true" path="$PROJECT_DIR$/flask" />
+            <excludedPath local="true" path="$PROJECT_DIR$/HanLP" />
+            <excludedPath local="true" path="$PROJECT_DIR$/PCA" />
+            <excludedPath local="true" path="$PROJECT_DIR$/pyunit_newword" />
+            <excludedPath local="true" path="$PROJECT_DIR$/turtle_test" />
+            <excludedPath local="true" path="$PROJECT_DIR$/句向量可视化" />
+            <excludedPath local="true" path="$PROJECT_DIR$/情感分析" />
+            <excludedPath local="true" path="$PROJECT_DIR$/百科词条查找" />
+            <excludedPath local="true" path="$PROJECT_DIR$/索引对比" />
+            <excludedPath local="true" path="$PROJECT_DIR$/训练词向量" />
+            <excludedPath local="true" path="$PROJECT_DIR$/评论标签抽取" />
+            <excludedPath local="true" path="$PROJECT_DIR$/词向量可视化" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

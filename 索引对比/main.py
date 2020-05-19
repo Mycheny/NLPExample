@@ -17,9 +17,9 @@ warnings.filterwarnings("ignore")
 path = "E:\\DATA\\tencent\\ChineseEmbedding.bin"
 
 # model = gensim.models.KeyedVectors.load_word2vec_format(path, binary=True, unicode_errors='ignore')
-model = gensim.models.KeyedVectors.load(path, mmap='r')
+# model = gensim.models.KeyedVectors.load(path, mmap='r')
 # model.init_sims(replace=True)  # l2-normalized <=> euclidean :  (a-b)^2 = a^2 + b^2 - 2ab = 2-2ab  <==>2-2*cos
-words = ["王者"] * 1000
+# words = ["王者"] * 1000
 
 
 class ANNSearch:
@@ -71,16 +71,24 @@ def time_test():
 def result_test():
     # print("gensim:", model.most_similar("王者", topn=2))
 
-    search_model = ANNSearch(model)
+    # search_model = ANNSearch(model)
 
     annoy_model = AnnoyIndex(200)
     annoy_model.save()
     annoy_model.load('/Users/zhoumeixu/Documents/python/word2vec/bin/annoy.model')
 
-    print("annoy:", list(search_model.search_by_annoy("王者", annoy_model, k=6)))
+    # print("annoy:", list(search_model.search_by_annoy("王者", annoy_model, k=6)))
 
+
+def get_annoy_model():
+    annoy_model = AnnoyIndex(200)
+    annoy_model.load('E:\\DATA\\tencent\\annoy_vocabulary_3000000.bin')
+    return annoy_model
 
 if __name__ == "__main__":
     # time_test()
 
-    result_test()
+    # result_test()
+
+    annoy_model = get_annoy_model()
+    print()
